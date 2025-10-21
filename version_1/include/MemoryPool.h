@@ -43,11 +43,12 @@ namespace Memory_Pool {
         Slot* lastSlot_; // 当前内存块中最后能够存放元素的位置标识（超过该位置需要申请新内存块）
         std::mutex mutexForBlock_;
     };
+
+
+    // 哈希桶，管理多规格内存池
+    class HashBucket {
+    public:
+        static void initMemoryPool();
+    };
 }
-
-// 哈希桶，管理多规格内存池
-class HashBucket {
-
-};
-
 #endif //MEMORYPOOL_H
