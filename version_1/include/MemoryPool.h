@@ -18,9 +18,14 @@ namespace Memory_Pool {
 
     class MemoryPool {
     public:
-        MemoryPool (size_t BlockSize = 4096) : BlockSize_(BlockSize){};
+        // 内存池对象构造，各方面都为0，仅建一个对象
+        MemoryPool (size_t BlockSize = 4096) : BlockSize_(BlockSize),SlotSize_(0),
+        firstBlock_(nullptr),curSlot(nullptr),freeList_(nullptr),lastSlot_(nullptr){};
+
+        // 析构函数
         ~MemoryPool();
 
+        // 初始化内存池，给出内存池中槽的大小
         void init(size_t size);
 
         void* allocate();
@@ -45,10 +50,36 @@ namespace Memory_Pool {
     };
 
 
-    // 哈希桶，管理多规格内存池
+    // 哈希桶，管理多个内存池
     class HashBucket {
     public:
         static void initMemoryPool();
+
+        static MemoryPool& getMemoryPool(int index);
+
+        static void* useMemory(size_t size);
+
+        static void freeMemory(void* ptr,size_t size);
+
+        // 向内存池申请内存的接口
+        template<typename T,typename... Args>
+        friend T* newElement(Args&&... args);
+
+        // 将申请的内存进行回收
+        template<typename T>
+        friend void deleteElement(T* p);
     };
+
+
+    template<typename T, typename ... Args>
+    T * newElement(Args &&...args) {
+        T* p = nullptr;
+        // 根据元素大小选择合适的内存池分配内存
+
+    }
+
+    template<typename T>
+    void deleteElement(T *p) {
+    }
 }
 #endif //MEMORYPOOL_H
