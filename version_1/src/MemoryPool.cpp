@@ -45,15 +45,31 @@ namespace Memory_Pool {
     }
 
     Slot * MemoryPool::popFreeList() {
+        while (1) {
+            Slot* oldHead = freeList_.load(std::memory_order_acquire);
+        }
     }
 
     void HashBucket::initMemoryPool() {
+        for (int i = 0; i < MEMORY_POOL_NUM; ++i) {
+            // index 暗含槽大小信息
+            getMemoryPool(i).init((i+1) * SLOT_BASE_SIZE);
+        }
     }
 
     MemoryPool & HashBucket::getMemoryPool(int index) {
+        static MemoryPool memorypool[MEMORY_POOL_NUM]; // 通过静态数组创建了多个MemoryPool实例 单例
+        return memorypool[index];
     }
 
     void * HashBucket::useMemory(size_t size) {
+        if (size <= 0)
+            return nullptr;
+        // 超过最大槽限制，则使用operator new 分配内存
+        if (size > MAX_SLOT_SIZE)
+            return operator new(size);
+        // size/8 向上取整
+        return getMemoryPool((size + 7) / SLOT_BASE_SIZE).allocate();
     }
 
     void HashBucket::freeMemory(void *ptr, size_t size) {

@@ -53,8 +53,10 @@ namespace Memory_Pool {
     // 哈希桶，管理多个内存池
     class HashBucket {
     public:
+        // 内存池初始化，建立MEMORY_POOL_NUM个内存池供HashBucket管理
         static void initMemoryPool();
 
+        // 单例，提供内存池对象（实际是个数组）的全局访问点
         static MemoryPool& getMemoryPool(int index);
 
         static void* useMemory(size_t size);
@@ -74,7 +76,7 @@ namespace Memory_Pool {
     template<typename T, typename ... Args>
     T * newElement(Args &&...args) {
         T* p = nullptr;
-        // 根据元素大小选择合适的内存池分配内存
+        // 根据元素大小选择合适的内存池分配内存（实际上是根据槽选择合适的内存池）
 
     }
 
