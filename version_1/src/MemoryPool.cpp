@@ -29,7 +29,25 @@ namespace Memory_Pool {
     }
 
     void * MemoryPool::allocate() {
-
+        // 优先使用freelist中的内存槽
+        Slot* slot = popFreeList();
+        if (slot != nullptr) {
+            return slot;
+        }
+        // freelist为空 - 使用curslot指向的槽
+        Slot* temp;
+        {
+            std::lock_guard<std::mutex> lock(mutexForBlock_);
+            if (curSlot >= lastSlot_) {
+                // 当前内存块已满，向OS申请新内存块
+                allocateNewBlock();
+            }
+            temp = curSlot;
+            // 将curSlot从当前位置移动到下一个内存槽的起始地址
+            // 不能直接curSlot + Slotsize_，因为这样会便宜Slotsize_ * sizeof(Slot)个字节
+            curSlot += (SlotSize_ / sizeof(Slot));
+        }
+        return temp;
     }
 
     void MemoryPool::deallocate(void *ptr) {
@@ -41,12 +59,15 @@ namespace Memory_Pool {
     size_t MemoryPool::padPointer(char *p, size_t align) {
     }
 
+    // 实现无锁入队
     bool MemoryPool::pushFreeList(Slot *slot) {
     }
 
+    // 实现无锁出队
     Slot * MemoryPool::popFreeList() {
-        while (1) {
+        while (true) {
             Slot* oldHead = freeList_.load(std::memory_order_acquire);
+
         }
     }
 
