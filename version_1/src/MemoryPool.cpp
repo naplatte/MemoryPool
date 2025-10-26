@@ -51,6 +51,11 @@ namespace Memory_Pool {
     }
 
     void MemoryPool::deallocate(void *ptr) {
+        if (! ptr)
+            return;
+        // 放入freelist中
+        Slot* slot = reinterpret_cast<Slot *>(ptr);
+        pushFreeList(slot);
     }
 
     void MemoryPool::allocateNewBlock() {
@@ -61,6 +66,9 @@ namespace Memory_Pool {
 
     // 实现无锁入队
     bool MemoryPool::pushFreeList(Slot *slot) {
+        while (true) {
+
+        }
     }
 
     // 实现无锁出队
@@ -94,6 +102,13 @@ namespace Memory_Pool {
     }
 
     void HashBucket::freeMemory(void *ptr, size_t size) {
+        if (!ptr)
+            return;
+        if (size > MAX_SLOT_SIZE) {
+            operator delete(ptr);
+            return;
+        }
+        getMemoryPool((size + 7) / SLOT_BASE_SIZE - 1).deallocate(ptr);
     }
 }
 
