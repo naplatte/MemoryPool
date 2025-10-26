@@ -67,6 +67,11 @@ namespace Memory_Pool {
     // 实现无锁入队
     bool MemoryPool::pushFreeList(Slot *slot) {
         while (true) {
+            // 获取当前头结点 (freeList_ 本身存的就是链表头的地址,直接load就可以得到)
+            Slot* oldHead = freeList_.load(std::memory_order_relaxed);
+            // 新节点头插(slot->next = head)
+            slot->next.store(oldHead,std::memory_order_relaxed);
+            // 新节点设为头结点
 
         }
     }
