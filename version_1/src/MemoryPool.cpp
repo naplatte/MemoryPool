@@ -59,6 +59,7 @@ namespace Memory_Pool {
     }
 
     void MemoryPool::allocateNewBlock() {
+
     }
 
     size_t MemoryPool::padPointer(char *p, size_t align) {
@@ -72,7 +73,10 @@ namespace Memory_Pool {
             // 新节点头插(slot->next = head)
             slot->next.store(oldHead,std::memory_order_relaxed);
             // 新节点设为头结点
-
+            if (freeList_.compare_exchange_weak(oldHead,slot,
+                std::memory_order_release,std::memory_order_relaxed));
+                return true;
+            // 如果失败的话说明另一个线程可能修改了freelist_
         }
     }
 
@@ -80,7 +84,25 @@ namespace Memory_Pool {
     Slot * MemoryPool::popFreeList() {
         while (true) {
             Slot* oldHead = freeList_.load(std::memory_order_acquire);
+            // 头删
+            if (oldHead == nullptr)
+                return nullptr; // 队列为空
+            Slot* newHead = nullptr;
+            try {
+                newHead = oldHead->next.load(std::memory_order_relaxed); // 头节点的next成为新节点（删头）
+            }
+            catch (...) {
+                // 如果捕获到异常，则回到while开始的地方重试
+                continue;
+            }
 
+            // 再检查一遍newHead是否被真的改了，没改再改，改了直接return （多线程必须要考虑这些）
+            if (freeList_.compare_exchange_weak(oldHead,newHead,
+                std::memory_order_acquire,std::memory_order_relaxed))
+            {
+                return oldHead;
+            }
+            // 失败：说明另一个线程可能已经修改了 freeList_
         }
     }
 
