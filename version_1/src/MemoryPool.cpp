@@ -59,10 +59,19 @@ namespace Memory_Pool {
     }
 
     void MemoryPool::allocateNewBlock() {
+        void* newBlock = operator new(BlockSize_);
+        // 新内存块头插
+        reinterpret_cast<Slot*>(newBlock)->next = firstBlock_;
+        firstBlock_ = reinterpret_cast<Slot *>(newBlock);
 
+        char* body = reinterpret_cast<char*>(newBlock) + sizeof(Slot*); // 指针运算，body指向
+        // 计算需要填充内存的大小
+        size_t paddingSize = padPointer(body,SlotSize_);
     }
 
-    size_t MemoryPool::padPointer(char *p, size_t align) {
+    size_t MemoryPool::padPointer(char *p, size_t slotsize) {
+        int tmp = reinterpret_cast<size_t>(p) % slotsize;
+        return slotsize - tmp;
     }
 
     // 实现无锁入队

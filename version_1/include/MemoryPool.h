@@ -33,7 +33,9 @@ namespace Memory_Pool {
 
     private:
         void allocateNewBlock();
-        size_t padPointer(char* p, size_t align);
+
+        // 计算对齐需要填充内存的大小
+        size_t padPointer(char* p, size_t slotsize);
 
         // 使用CAS进行无锁入队和出队
         bool pushFreeList(Slot* slot);
