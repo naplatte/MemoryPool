@@ -67,11 +67,11 @@ namespace Memory_Pool {
 
         // 向内存池申请内存的接口
         template<typename T,typename... Args>
-        friend T* newElement(Args&&... args);
+        T* newElement(Args&&... args);
 
         // 将申请的内存进行回收
         template<typename T>
-        friend void deleteElement(T* p);
+        void deleteElement(T* p);
     };
 
 
@@ -79,11 +79,19 @@ namespace Memory_Pool {
     T * newElement(Args &&...args) {
         T* p = nullptr;
         // 根据元素大小选择合适的内存池分配内存（实际上是根据槽选择合适的内存池）
-
+        p = reinterpret_cast<T*>(HashBucket::useMemory(sizeof(T)));
+        if (p != nullptr) {
+            new(p) T(std::forward<Args>(args)...); // 在分配的内存上构造对象
+        }
+        return p;
     }
 
     template<typename T>
     void deleteElement(T *p) {
+        if (p) {
+            p->~T(); // 对象析构
+            HashBucket::freeMemory(reinterpret_cast<void*>(p),sizeof(T)); // 内存回收
+        }
     }
 }
 #endif //MEMORYPOOL_H
