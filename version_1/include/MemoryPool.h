@@ -20,7 +20,7 @@ namespace Memory_Pool {
     public:
         // 内存池对象构造，各方面都为0，仅建一个对象
         MemoryPool (size_t BlockSize = 4096) : BlockSize_(BlockSize),SlotSize_(0),
-        firstBlock_(nullptr),curSlot(nullptr),freeList_(nullptr),lastSlot_(nullptr){};
+        firstBlock_(nullptr),curSlot_(nullptr),freeList_(nullptr),lastSlot_(nullptr){};
 
         // 析构函数
         ~MemoryPool();
@@ -45,7 +45,7 @@ namespace Memory_Pool {
         int BlockSize_; // 内存块大小
         int SlotSize_; // 槽大小
         Slot* firstBlock_; // 指向内存池管理的首个内存块
-        Slot* curSlot; // 指向当前未被使用过的槽（将要分配出去的下一个槽）
+        Slot* curSlot_; // 指向当前未被使用过的槽（将要分配出去的下一个槽）
         std::atomic<Slot*> freeList_; // 指向空闲的槽（被使用后又被释放）
         Slot* lastSlot_; // 当前内存块中最后能够存放元素的位置标识（超过该位置需要申请新内存块）
         std::mutex mutexForBlock_;
@@ -76,7 +76,7 @@ namespace Memory_Pool {
 
 
     template<typename T, typename ... Args>
-    T * newElement(Args &&...args) {
+    T * newElement(Args &&... args) {
         T* p = nullptr;
         // 根据元素大小选择合适的内存池分配内存（实际上是根据槽选择合适的内存池）
         p = reinterpret_cast<T*>(HashBucket::useMemory(sizeof(T)));

@@ -23,7 +23,7 @@ namespace Memory_Pool {
         assert(size > 0);
         SlotSize_ = size;
         firstBlock_ = nullptr;
-        curSlot = nullptr;
+        curSlot_ = nullptr;
         freeList_ = nullptr;
         lastSlot_ = nullptr;
     }
@@ -38,14 +38,14 @@ namespace Memory_Pool {
         Slot* temp;
         {
             std::lock_guard<std::mutex> lock(mutexForBlock_);
-            if (curSlot >= lastSlot_) {
+            if (curSlot_ >= lastSlot_) {
                 // 当前内存块已满，向OS申请新内存块
                 allocateNewBlock();
             }
-            temp = curSlot;
+            temp = curSlot_;
             // 将curSlot从当前位置移动到下一个内存槽的起始地址
             // 不能直接curSlot + Slotsize_，因为这样会便宜Slotsize_ * sizeof(Slot)个字节
-            curSlot += (SlotSize_ / sizeof(Slot));
+            curSlot_ += (SlotSize_ / sizeof(Slot));
         }
         return temp;
     }
@@ -67,6 +67,10 @@ namespace Memory_Pool {
         char* body = reinterpret_cast<char*>(newBlock) + sizeof(Slot*); // 指针运算，body指向
         // 计算需要填充内存的大小
         size_t paddingSize = padPointer(body,SlotSize_);
+        curSlot_ = reinterpret_cast<Slot*>(body + paddingSize);
+
+        // 超过该标记位置，则说明该内存块已无内存槽可用，需向系统申请新的内存块
+        lastSlot_ = reinterpret_cast<Slot*>(reinterpret_cast<size_t>(newBlock) + BlockSize_ - SlotSize_ + 1);
     }
 
     size_t MemoryPool::padPointer(char *p, size_t slotsize) {
@@ -83,7 +87,7 @@ namespace Memory_Pool {
             slot->next.store(oldHead,std::memory_order_relaxed);
             // 新节点设为头结点
             if (freeList_.compare_exchange_weak(oldHead,slot,
-                std::memory_order_release,std::memory_order_relaxed));
+                std::memory_order_release,std::memory_order_relaxed))
                 return true;
             // 如果失败的话说明另一个线程可能修改了freelist_
         }
@@ -134,7 +138,7 @@ namespace Memory_Pool {
         if (size > MAX_SLOT_SIZE)
             return operator new(size);
         // size/8 向上取整
-        return getMemoryPool((size + 7) / SLOT_BASE_SIZE).allocate();
+        return getMemoryPool(((size + 7) / SLOT_BASE_SIZE) - 1).allocate();
     }
 
     void HashBucket::freeMemory(void *ptr, size_t size) {
