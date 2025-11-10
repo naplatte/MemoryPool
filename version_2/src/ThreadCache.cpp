@@ -6,7 +6,6 @@
 #include "../include/ThreadCache.h"
 namespace MemoryPool
 {
-
     void *ThreadCache::allocate(size_t size) {
         if (size == 0) {
             size = ALIGNMENT; // 至少分配一个对齐大小(8B)
@@ -23,6 +22,6 @@ namespace MemoryPool
             return ptr;
         }
         // 空闲链表为空 - 向中心缓存申请内存
-
+        return fetchFromCentralCache(index);
     }
 }
