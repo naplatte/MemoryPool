@@ -34,11 +34,18 @@ private:
         freeListSize_.fill(0);
     }
 
+    // 从中心缓存获取内存
+    void* fetchFromCentralCache(size_t index);
+
+    // 归还内存到中心缓存
+    void returnToCentralCache(void* start,size_t size);
+
+    bool shouldReturnToCentralCache(size_t index);
+
 private:
     // 每个线程都有一个空闲链表数组（因为长度是固定的，所以直接用array即可）
     std::array<void*,FREE_LIST_SIZE> freeList_; // 长度为 FREE_LIST_SIZE 的定长数组，每个元素都是 void* 指针
     std::array<size_t,FREE_LIST_SIZE> freeListSize_;
-
 };
 }
 

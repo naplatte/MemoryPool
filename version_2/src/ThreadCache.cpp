@@ -15,6 +15,14 @@ namespace MemoryPool
             return malloc(size); // 大内存直接系统调用
         }
 
+        size_t index = SizeClass::getIndex(size);
+        freeListSize_[index]--; // 更新对应空闲链表长度
+
+        if (void* ptr = freeList_[index]) { // 空闲链表不为空
+            freeList_[index] = * reinterpret_cast<void**>(ptr);
+            return ptr;
+        }
+        // 空闲链表为空 - 向中心缓存申请内存
 
     }
 }

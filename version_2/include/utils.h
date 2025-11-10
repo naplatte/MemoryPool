@@ -38,7 +38,7 @@ public:
     }
 
     // 将请求映射到对应的空闲链表下标
-    static size_t getyIndex(size_t bytes) {
+    static size_t getIndex(size_t bytes) {
         // 确保bytes至少为ALIGNMENT
         bytes = std::max(bytes,ALIGNMENT);
 
