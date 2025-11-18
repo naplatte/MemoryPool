@@ -11,9 +11,9 @@
 
 namespace MemoryPool
 {
-constexpr size_t ALIGNMENT = 8; // 最小内存块为8B（内存块需要按8B对齐）
-constexpr size_t MAX_BTTES = 256 * 1024; // 最大内存块256KB，超过则使用new/malloc向os申请
-constexpr size_t FREE_LIST_SIZE = MAX_BTTES / ALIGNMENT; // 空闲槽链表的节点数（最大为256KB / 8B 个）
+constexpr size_t ALIGNMENT = 8; // 最小内存块为8B（内存块需要按8B对齐） alignment:对齐，8B 16B 24B 32B .... 256KB
+constexpr size_t MAX_BYTES = 256 * 1024; // 内存池中最大的内存块256KB，
+constexpr size_t FREE_LIST_SIZE = MAX_BYTES / ALIGNMENT; // 表示“有多少种”大小不同的内存块
 
 // 内存块头部
 struct BlockHeader {
@@ -22,7 +22,7 @@ struct BlockHeader {
     BlockHeader* next; // 指向下一个内存块
 };
 
-// 内存块の标准化大小和索引映射
+// 相当于一个工具类（没有状态，只提供函数），帮你把用户请求映射到threadcache的合适链表
 class SizeClass {
 public:
     // 将 bytes 向上取整为 ALIGNMENT 的倍数

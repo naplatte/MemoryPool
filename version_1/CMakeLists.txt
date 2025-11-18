@@ -20,7 +20,9 @@ add_executable(${PROJECT_NAME} ${SRC_FILES} ${TEST_FILES}
         tests/UnitTest.cpp
         ../version_2/src/ThreadCache.cpp
         ../version_2/include/ThreadCache.h
-        ../version_2/include/utils.h)
+        ../version_2/include/utils.h
+        ../version_2/src/CentralCache.cpp
+        ../version_2/include/CentralCache.h)
 
 # Add compile options
 target_compile_options(${PROJECT_NAME} PRIVATE -g -pthread)

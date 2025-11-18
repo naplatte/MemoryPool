@@ -43,9 +43,8 @@ private:
     bool shouldReturnToCentralCache(size_t index);
 
 private:
-    // 每个线程都有一个空闲链表数组（因为长度是固定的，所以直接用array即可）
-    std::array<void*,FREE_LIST_SIZE> freeList_; // 长度为 FREE_LIST_SIZE 的定长数组，每个元素都是 void* 指针
-    std::array<size_t,FREE_LIST_SIZE> freeListSize_; // 长度为FREE_LIST_SIZE的定长数组，每个元素都是size_t
+    std::array<void*,FREE_LIST_SIZE> freeList_; // 每个线程都维护一个空闲链表
+    std::array<size_t,FREE_LIST_SIZE> freeListSize_; // 每种大小的空闲内存块数量
 };
 }
 
