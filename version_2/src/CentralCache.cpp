@@ -17,5 +17,30 @@ namespace MemoryPool {
         return nullptr;
     }
 
+    void CentralCache::returnRange(void *start, size_t size, size_t index) {
+
+    }
+
+    void *CentralCache::fetchFromPageCache(size_t size) {
+        return nullptr;
+    }
+
+    SpanTracker *CentralCache::getSpanTracker(void *blockAddr) {
+        return nullptr;
+    }
+
+    void CentralCache::updateSpanFreeCount(SpanTracker *tracker, size_t newFreeBlocks, size_t index) {
+
+    }
+
+    bool CentralCache::shouldPerformDelayedReturn(size_t index, size_t currentCount,
+                                                  std::chrono::steady_clock::time_point currentTime) {
+        return false;
+    }
+
+    void CentralCache::performDelayedReturn(size_t index) {
+
+    }
+
 
 } // MemoryPool

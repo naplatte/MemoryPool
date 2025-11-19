@@ -6,7 +6,6 @@
 
 namespace MemoryPool
 {
-
 // 帮助中心缓存管理从页缓存获取的内存块（span）
 struct SpanTracker {
     std::atomic<void*> spanAddr{nullptr}; // 内存块起始地址
@@ -22,7 +21,6 @@ public:
         static CentralCache instance;
         return instance;
     }
-
     void* fetchRange(size_t index); // 获取指定大小类的内存块范围
     void returnRange(void* start,size_t size,size_t index); // 将指定范围的内存块归还给中心缓存的对应大小类
 

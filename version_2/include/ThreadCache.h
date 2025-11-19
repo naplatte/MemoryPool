@@ -38,9 +38,9 @@ private:
     void* fetchFromCentralCache(size_t index);
 
     // 归还内存到中心缓存
-    void returnToCentralCache(void* start,size_t size);
-
     bool shouldReturnToCentralCache(size_t index);
+
+    void returnToCentralCache(void* start,size_t size);
 
 private:
     std::array<void*,FREE_LIST_SIZE> freeList_; // 每个线程都维护一个空闲链表
