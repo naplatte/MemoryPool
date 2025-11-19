@@ -78,25 +78,7 @@ namespace MemoryPool
     }
 
     void ThreadCache::returnToCentralCache(void *start, size_t size) {
-        size_t index = SizeClass::getIndex(size);
-        size_t realSize = SizeClass::roundUp(size); // 实际内存块大小（对齐）
 
-        size_t retNum = freeListSize_[index]; // 需要归还的空闲内存块数量
-        if (retNum <= 1)
-            return; // 1个块 - 不还
-
-        // 先保留一部分在线程缓存中，再还（避免频繁向中心缓存申请/释放）
-        size_t keepNum = std::max(retNum / 4,size_t(1));
-        retNum = retNum - keepNum;
-
-        // 将要归还的部分串成链表 char*类型方便计算指针偏移
-        char* cur = static_cast<char*>(start);
-        for (size_t i = 0; i < keepNum - 1; ++i) {
-            cur = reinterpret_cast<char*>(*reinterpret_cast<void**>(cur));
-            if (cur == nullptr) {
-                
-            }
-        }
     }
 }
 
