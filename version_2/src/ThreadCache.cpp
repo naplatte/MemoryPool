@@ -51,7 +51,7 @@ namespace MemoryPool
     void *ThreadCache::fetchFromCentralCache(size_t index) {
         // 调用中心缓存取内存块的接口，获得指向内存块的指针
         void* start = CentralCache::getInstance().fetchRange(index);
-        // 中心缓存未能提供内存块
+        // 中心缓存未能提供内存块,返回空指针
         if (! start)
             return nullptr;
 
@@ -78,7 +78,14 @@ namespace MemoryPool
     }
 
     void ThreadCache::returnToCentralCache(void *start, size_t size) {
+        size_t index = SizeClass::getIndex(size);
+        size_t realSize = SizeClass::roundUp(size); // 算上对齐填充部分的实际内存块大小
+        size_t batchNum = freeListSize_[index]; // 需要归还的内存块数量
+        if (batchNum <= 1)  return; // 只有1个块则不归还
 
+        // 保留一部分在原空闲链表中（避免频繁向中心缓存申请师范内存） 比如保留个1/4
+        size_t keepNum = std::max(batchNum / 4,size_t(1));
+        size_t retNum = batchNum - keepNum;
     }
 }
 

@@ -1,7 +1,6 @@
 //
 // Created by cuihs on 2025/11/18.
 //
-
 #include "../include/CentralCache.h"
 
 namespace MemoryPool {
@@ -14,7 +13,31 @@ namespace MemoryPool {
     }
 
     void *CentralCache::fetchRange(size_t index) {
-        return nullptr;
+        // 内存过大，直接向系统申请
+        if (index >= FREE_LIST_SIZE) {
+            return nullptr;
+        }
+        // 自旋锁保护
+        while (locks_[index].test_and_set(std::memory_order_acquire)) {
+            std::this_thread::yield(); // 让出CPU，避免忙等待（相当于是带让步的自旋锁）
+        }
+        void* res = nullptr;
+
+        // 尝试去中心缓存获取内存块
+        try {
+            res = centralFreeList_[index].load(std::memory_order_relaxed);
+
+            if (! res) {
+                // 中心缓存为空，从页缓存获取新的内存块
+                size_t size = (index + 1) * ALIGNMENT;
+                res = fetchFromPageCache(size);
+                if (! res) {
+                    // 页缓存也无法提供内存，返回空指针
+                    locks_[index].clear(std::memory_order_release);
+                    return nullptr;
+                }
+            }
+        }
     }
 
     void CentralCache::returnRange(void *start, size_t size, size_t index) {
