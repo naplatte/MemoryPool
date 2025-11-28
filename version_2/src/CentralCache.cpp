@@ -36,8 +36,18 @@ namespace MemoryPool {
                     locks_[index].clear(std::memory_order_release);
                     return nullptr;
                 }
+
+                // 将从 PageCache 获取到的一段连续内存按请求大小切分成多个块，构建空闲链表
+                // 将首块作为返回结果与链表断开，并把剩余块作为 centralFreeList_ 的新头存储以供后续分配与跟踪
+                char* start = static_cast<char*> (res);
+
             }
         }
+        catch (...) {
+
+        }
+
+        // 释放锁
     }
 
     void CentralCache::returnRange(void *start, size_t size, size_t index) {
