@@ -2,8 +2,11 @@
 // Created by cuihs on 2025/11/18.
 //
 #include "../include/CentralCache.h"
+#include "../include/PageCache.h"
 
 namespace MemoryPool {
+    static const size_t SPANPAGES = 8; // 每次从页缓存获取的span大小（是一个8页的区间）
+
     CentralCache::CentralCache() {
         // 所有大小的内存块对应的空闲链表，初始为空 memory_order_relaxed - 不保证顺序，仅保证原子性
         for (auto& ptr : centralFreeList_) {
@@ -40,6 +43,9 @@ namespace MemoryPool {
                 // 将从 PageCache 获取到的一段连续内存按请求大小切分成多个块，构建空闲链表
                 // 将首块作为返回结果与链表断开，并把剩余块作为 centralFreeList_ 的新头存储以供后续分配与跟踪
                 char* start = static_cast<char*> (res);
+                size_t numPages = (size <= SPANPAGES * PageCache::PAGE_SIZE) ?
+                                    SPANPAGES :
+                                  (size + 1);
 
             }
         }
