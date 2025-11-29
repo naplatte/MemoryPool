@@ -63,7 +63,7 @@ void *PageCache::systemAlloc(size_t numPages) {
     if (! ptr)
         return nullptr;
 
-    memset(ptr,0,size); // 刚分配到的那一段内存里的每一个字节都写成 0，相当于做一次初始化
+    memset(ptr,0,size); // 刚分配到的那一段内存里的每一个字节都写成 0，相当于做一次初始化 memset用于批量填充内存
     return ptr;
 
 }
