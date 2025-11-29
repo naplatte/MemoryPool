@@ -13,6 +13,12 @@ public:
         return instance;
     }
 
+    // 分配指定页数的页区间（Span）
+    void* allocateSpan(size_t numPages);
+
+    // 释放Span给系统
+    void deallocateSpan(void* ptr,size_t numPages);
+
 private:
     PageCache() = default; // 构造函数私有实现单例
 
@@ -27,8 +33,8 @@ private:
         Span* next; // 指向下一段页区间的指针
     };
 
-    std::map<size_t,Span*> freeSpans_; // 不同页数的Span对应不同的空闲链表
-    std::map<void*,Span*> spanMap_;// 根据页地址 找对对应的Span（区间）
+    std::map<size_t,Span*> freeSpans_; // 不同页数的Span对应不同的空闲页区间链表
+    std::map<void*,Span*> spanMap_; // 根据页地址 找对对应的Span（区间）
     std::mutex mutex_;
 };
 
