@@ -1,7 +1,10 @@
 #include "../include/PageCache.h"
+#include <Windows.h>
 
 void *PageCache::allocateSpan(size_t numPages) {
-    std::lock_guard<std::mutex> lock(mutex_); // RAII 现在加锁，等mutex_作用域结束后，自动解锁该信号量
+    // RAII 现在加锁，等mutex_作用域结束后，自动解锁该信号量
+    // 即进入函数时，上锁mutex_，退出函数时解锁，保证多线程操作freeSpans_和spanMap_的安全性
+    std::lock_guard<std::mutex> lock(mutex_);
 
     // 找到第一个合适的Span（页数>=numPages）并分配
     auto it = freeSpans_.lower_bound(numPages); // lower_bound:返回指向第一个 key 不小于给定值（>= key）的元素的迭代器
@@ -53,5 +56,14 @@ void PageCache::deallocateSpan(void *ptr, size_t numPages) {
 }
 
 void *PageCache::systemAlloc(size_t numPages) {
-    return nullptr;
+    size_t size = numPages * PAGE_SIZE; // 需要内存总量
+
+    // Windows下使用VirtualAlloc 分配内存
+    void* ptr = VirtualAlloc(nullptr,size,MEM_RESERVE | MEM_COMMIT,PAGE_READWRITE);
+    if (! ptr)
+        return nullptr;
+
+    memset(ptr,0,size); // 刚分配到的那一段内存里的每一个字节都写成 0，相当于做一次初始化
+    return ptr;
+
 }
