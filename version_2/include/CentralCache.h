@@ -22,13 +22,13 @@ public:
         static CentralCache instance;
         return instance;
     }
-    void* fetchRange(size_t index); // 从中心缓存获取指定大小类的内存块范围
-    void returnRange(void* start,size_t size,size_t index); // 将指定范围的内存块归还给中心缓存的对应大小类
+    void* fetchRange(size_t index); // 中心缓存->线程缓存
+    void returnRange(void* start,size_t size,size_t index); // 线程缓存->中心缓存
 
 private:
     CentralCache(); // 构造函数为私有 服务于单例
 
-    // 从页缓存获取内存
+    // 页缓存->中心缓存
     void* fetchFromPageCache(size_t size);
 
     // 获取span信息
@@ -40,7 +40,7 @@ private:
 private:
     std::array<std::atomic<void*>,FREE_LIST_SIZE> centralFreeList_; // 中心缓存的空闲链表 - 也是每种大小的内存块对应一个空闲链表 中心缓存可能会被多线程访问，因此为atomic<void*>类型
 
-    std::array<std::atomic_flag,FREE_LIST_SIZE> locks_; // 自旋锁
+    std::array<std::atomic_flag,FREE_LIST_SIZE> locks_; // 每种大小的内存块对应空闲链表的自旋锁
 
     std::array<SpanTracker,1024> spanTracks_; // 使用数组存储span信息，（较map相比有更小的开销）
     std::atomic<size_t> spanCount_{0}; // 记录当前中心缓存中SpanTracker对象的数量
