@@ -70,8 +70,8 @@ namespace MemoryPool {
                     if (trackerIndex < spanTracks_.size()) { // 若追踪对象已满（最高1024个），则直接不记录 - 静默丢弃
                         spanTracks_[trackerIndex].spanAddr.store(start,std::memory_order_release);
                         spanTracks_[trackerIndex].numPages.store(numPages,std::memory_order_release);
-                        spanTracks_[trackerIndex].freeCount.store(blockNum,std::memory_order_release);
-                        spanTracks_[trackerIndex].blockCount.store(blockNum - 1,std::memory_order_release); // 第一个块res已被分配
+                        spanTracks_[trackerIndex].blockCount.store(blockNum,std::memory_order_release);
+                        spanTracks_[trackerIndex].freeCount.store(blockNum - 1,std::memory_order_release); // 第一个块res已被分配
                     }
                 }
              }
@@ -105,11 +105,30 @@ namespace MemoryPool {
 
     }
 
-    void *CentralCache::fetchFromPageCache(size_t size) {
-        return nullptr;
+    void* CentralCache::fetchFromPageCache(size_t size) {
+        // 计算需要分配的页数
+        size_t numPages = (size + PageCache::PAGE_SIZE - 1) / PageCache::PAGE_SIZE;
+
+        // 根据大小决定分配策略
+        if (size <= SPANPAGES * PageCache::PAGE_SIZE) {
+            // 页->中心，至少是8页
+            return PageCache::getInstance().allocateSpan(SPANPAGES);
+        }
+        else {
+            return PageCache::getInstance().allocateSpan(numPages);
+        }
     }
 
     SpanTracker *CentralCache::getSpanTracker(void *blockAddr) {
+        // 遍历存储Spantrackers的数组，找到块地址所属的spantracker
+        for (size_t i = 0; i < spanCount_.load(std::memory_order_relaxed); ++i) {
+            void* spanAddr = spanTracks_[i].spanAddr.load(std::memory_order_relaxed);
+            size_t numPages = spanTracks_[i].numPages.load(std::memory_order_relaxed);
+
+            if (blockAddr >= spanAddr && blockAddr < static_cast<char*>(spanAddr) + numPages * PageCache::PAGE_SIZE) {
+                return &spanTracks_[i];
+            }
+        }
         return nullptr;
     }
 
