@@ -4,6 +4,7 @@
 #include "utils.h"
 #include <chrono>
 #include <thread>
+#include <unordered_map>
 
 namespace MemoryPool
 {

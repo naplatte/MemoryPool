@@ -189,6 +189,24 @@ void CentralCache::performDelayedReturn(size_t index) {
     // 更新最后归还时间
     lastReturnTimes_[index] = std::chrono::steady_clock::now();
 
+    // 统计每个大小内存块对应span（页区间）的空闲块数
+    std::unordered_map<SpanTracker*,size_t > spanFreeCounts;
+    void* curBlock = centralFreeList_[index].load(std::memory_order_relaxed); // 遍历空闲链表中空闲块的指针
+
+    while (curBlock) {
+        SpanTracker* tracker = getSpanTracker(curBlock);
+        if (tracker) {
+            spanFreeCounts[tracker]++;
+        }
+        curBlock = *reinterpret_cast<void**>(curBlock);
+    }
+
+    // 更新每个span的空闲计数并检查是否可归还
+    for (const auto& [tracker, newFreeBlocks] : spanFreeCounts)
+    {
+        updateSpanFreeCount(tracker, newFreeBlocks, index);
+    }
+
 }
 
 
