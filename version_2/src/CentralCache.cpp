@@ -170,6 +170,7 @@ SpanTracker *CentralCache::getSpanTracker(void *blockAddr) {
     return nullptr;
 }
 
+// 之后再补这里
 void CentralCache::updateSpanFreeCount(SpanTracker *tracker, size_t newFreeBlocks, size_t index) {
 
 }
