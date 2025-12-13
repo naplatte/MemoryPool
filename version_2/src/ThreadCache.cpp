@@ -1,7 +1,3 @@
-//
-// Created by cuihs on 2025/11/4.
-//
-
 #include <cstdlib>
 #include "../include/ThreadCache.h"
 #include "../include/CentralCache.h"
