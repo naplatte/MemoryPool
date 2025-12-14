@@ -4,6 +4,7 @@
 
 namespace MemoryPool
 {
+// 分配相关逻辑
     void *ThreadCache::allocate(size_t size) {
         if (size == 0) {
             size = ALIGNMENT; // 至少分配一个对齐大小(8B)
@@ -23,25 +24,6 @@ namespace MemoryPool
 
         // (else)空闲链表为空 - 向中心缓存申请内存
         return fetchFromCentralCache(index);
-    }
-
-    void ThreadCache::deallocate(void *ptr, size_t size) {
-        if (size > MAX_BYTES) {
-            free(ptr);
-            return;
-        }
-
-        size_t index = SizeClass::getIndex(size);
-
-        // 对于指针来说，需要各自修改指向
-        *reinterpret_cast<void**>(ptr) = freeList_[index]; // 将对应大小的空闲链表首地址 赋给 即将被释放的内存块地址
-        freeList_[index] = ptr; // ptr赋值给空闲链表首地址
-        freeListSize_[index]++;
-
-        // 判断是否需要将内存回收给中心缓存
-        if (shouldReturnToCentralCache(index)) {
-            returnToCentralCache(freeList_[index],size);
-        }
     }
 
     void *ThreadCache::fetchFromCentralCache(size_t index) {
@@ -67,6 +49,27 @@ namespace MemoryPool
         return res;
     }
 
+
+// 归还相关逻辑
+    void ThreadCache::deallocate(void *ptr, size_t size) {
+        if (size > MAX_BYTES) {
+            free(ptr);
+            return;
+        }
+
+        size_t index = SizeClass::getIndex(size);
+
+        // 对于指针来说，需要各自修改指向
+        *reinterpret_cast<void**>(ptr) = freeList_[index]; // 将对应大小的空闲链表首地址 赋给 即将被释放的内存块地址
+        freeList_[index] = ptr; // ptr赋值给空闲链表首地址
+        freeListSize_[index]++;
+
+        // 判断是否需要将内存回收给中心缓存
+        if (shouldReturnToCentralCache(index)) {
+            returnToCentralCache(freeList_[index],size);
+        }
+    }
+
     bool ThreadCache::shouldReturnToCentralCache(size_t index) {
         // 设定阈值，当对应大小的内存块空闲链表的空闲块数量大于阈值时，将内存回收
         size_t threshold = 256;
@@ -75,13 +78,42 @@ namespace MemoryPool
 
     void ThreadCache::returnToCentralCache(void *start, size_t size) {
         size_t index = SizeClass::getIndex(size);
-        size_t realSize = SizeClass::roundUp(size); // 算上对齐填充部分的实际内存块大小
-        size_t batchNum = freeListSize_[index]; // 需要归还的内存块数量
-        if (batchNum <= 1)  return; // 只有1个块则不归还
+        // 获取对其后的实际内存大小
+        size_t alignedSize = SizeClass::roundUp(size);
 
-        // 保留一部分在原空闲链表中（避免频繁向中心缓存申请师范内存） 比如保留个1/4
+        // 计算归还的内存数量
+        size_t batchNum = freeListSize_[index];
+        if (batchNum <= 1)
+            return;
+
+        // 保留一部分在线程缓存（不还干净，免得下次再借），这里以留1/4为例
         size_t keepNum = std::max(batchNum / 4,size_t(1));
         size_t retNum = batchNum - keepNum;
+
+        // 将内存块（包括留着的）串成链表
+        char* cur = static_cast<char*>(start);
+        char* splitNode = cur;
+        for (size_t i = 0; i < keepNum - 1; ++i) {
+            splitNode = reinterpret_cast<char*>(*reinterpret_cast<void**>(splitNode));
+            if (splitNode == nullptr) {
+                retNum = batchNum - (i + 1);
+                break;
+            }
+        }
+        if (splitNode != nullptr) {
+            // 划分归还 & 保留
+            void* nextNode = *reinterpret_cast<void**>(splitNode);
+            *reinterpret_cast<void**>(splitNode) = nullptr; // 断链
+
+            // 更新线程缓存的空闲链表
+            freeList_[index] = start; // 头插
+            freeListSize_[index] = keepNum;
+
+            // 归还给中心链表
+            if (retNum > 0 && nextNode != nullptr) {
+                CentralCache::getInstance().returnRange(nextNode,retNum * alignedSize,index);
+            }
+        }
     }
 }
 

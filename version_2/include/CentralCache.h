@@ -16,6 +16,7 @@ struct SpanTracker {
     std::atomic<size_t> freeCount{0}; // 空闲块的数量
 };
 
+// 和线程缓存一个原理，对中心缓存的操作放在public,对页缓存的接口放在private,封装
 class CentralCache {
 public:
     // 只有一个中心缓存
@@ -40,7 +41,6 @@ private:
 
 private:
     std::array<std::atomic<void*>,FREE_LIST_SIZE> centralFreeList_; // 中心缓存的空闲链表 - 也是每种大小的内存块对应一个空闲链表 中心缓存可能会被多线程访问，因此为atomic<void*>类型
-
     std::array<std::atomic_flag,FREE_LIST_SIZE> locks_; // 每种大小的内存块对应空闲链表的自旋锁
 
     std::array<SpanTracker,1024> spanTracks_; // 使用数组存储span信息，（较map相比有更小的开销）
@@ -51,6 +51,7 @@ private:
     std::array<std::chrono::steady_clock::time_point,FREE_LIST_SIZE> lastReturnTimes_; // 上次归还时间
     static const std::chrono::milliseconds DELAY_INTERVAL; // 延迟间隔
 
+private:
     bool shouldPerformDelayedReturn(size_t index,size_t currentCount,std::chrono::steady_clock::time_point currentTime); // 判断指定大小类是否应执行延迟归还
     void performDelayedReturn(size_t index); // 执行指定大小类的延迟归还操作
 };

@@ -51,9 +51,6 @@ void *PageCache::allocateSpan(size_t numPages) {
     return memory;
 }
 
-void PageCache::deallocateSpan(void *ptr, size_t numPages) {
-}
-
 void *PageCache::systemAlloc(size_t numPages) {
     size_t size = numPages * PAGE_SIZE; // 需要内存总量
 
@@ -66,3 +63,7 @@ void *PageCache::systemAlloc(size_t numPages) {
     return ptr;
 
 }
+
+void PageCache::deallocateSpan(void *ptr, size_t numPages) {
+}
+

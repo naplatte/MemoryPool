@@ -101,6 +101,20 @@ void *CentralCache::fetchRange(size_t index) {
     return res;
 }
 
+void* CentralCache::fetchFromPageCache(size_t size) {
+        // 计算需要分配的页数
+        size_t numPages = (size + PageCache::PAGE_SIZE - 1) / PageCache::PAGE_SIZE;
+
+        // 根据大小决定分配策略
+        if (size <= SPANPAGES * PageCache::PAGE_SIZE) {
+            // 页->中心，至少是8页
+            return PageCache::getInstance().allocateSpan(SPANPAGES);
+        }
+        else {
+            return PageCache::getInstance().allocateSpan(numPages);
+        }
+    }
+
 void CentralCache::returnRange(void *start, size_t size, size_t index) {
     if (!start || index >= FREE_LIST_SIZE)
         return;
@@ -138,20 +152,6 @@ void CentralCache::returnRange(void *start, size_t size, size_t index) {
     }
     // 解锁
     locks_[index].clear(std::memory_order_release);
-}
-
-void* CentralCache::fetchFromPageCache(size_t size) {
-    // 计算需要分配的页数
-    size_t numPages = (size + PageCache::PAGE_SIZE - 1) / PageCache::PAGE_SIZE;
-
-    // 根据大小决定分配策略
-    if (size <= SPANPAGES * PageCache::PAGE_SIZE) {
-        // 页->中心，至少是8页
-        return PageCache::getInstance().allocateSpan(SPANPAGES);
-    }
-    else {
-        return PageCache::getInstance().allocateSpan(numPages);
-    }
 }
 
 SpanTracker *CentralCache::getSpanTracker(void *blockAddr) {
@@ -206,6 +206,5 @@ void CentralCache::performDelayedReturn(size_t index) {
     }
 
 }
-
 
 } // MemoryPool

@@ -1,7 +1,3 @@
-//
-// Created by cuihs on 2025/11/4.
-//
-
 #ifndef MEMORYPOOL_THREADCACHE_H
 #define MEMORYPOOL_THREADCACHE_H
 #include "utils.h"
