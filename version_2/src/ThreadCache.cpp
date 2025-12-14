@@ -95,8 +95,9 @@ namespace MemoryPool
         char* splitNode = cur;
         for (size_t i = 0; i < keepNum - 1; ++i) {
             splitNode = reinterpret_cast<char*>(*reinterpret_cast<void**>(splitNode));
+            // 防御性处理“空闲链表长度不符合预期”的情况，避免解引用空指针，同时修正实际需要归还的内存块数量
             if (splitNode == nullptr) {
-                retNum = batchNum - (i + 1);
+                retNum = batchNum - (i + 1); // 链表比预期的短，则归还链表中存在的所有块
                 break;
             }
         }

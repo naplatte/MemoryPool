@@ -121,6 +121,7 @@ void CentralCache::returnRange(void *start, size_t size, size_t index) {
     size_t blockSize = (index + 1) * ALIGNMENT;
     size_t blockCount = size / blockSize;
 
+    // 请求获得中心缓存占用权
     while (locks_[index].test_and_set(std::memory_order_acquire)) {
         std::this_thread::yield();
     }
@@ -167,7 +168,6 @@ SpanTracker *CentralCache::getSpanTracker(void *blockAddr) {
     return nullptr;
 }
 
-// 之后再补这里
 void CentralCache::updateSpanFreeCount(SpanTracker *tracker, size_t newFreeBlocks, size_t index) {
 
 }
