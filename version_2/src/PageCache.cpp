@@ -65,5 +65,27 @@ void *PageCache::systemAlloc(size_t numPages) {
 }
 
 void PageCache::deallocateSpan(void *ptr, size_t numPages) {
+    std::lock_guard<std::mutex> lock_(mutex_);
+
+    // 查找该ptr（spanAddr）对应的span
+    auto it = spanMap_.find(ptr);
+    // 说明该span不是页缓存分配的
+    if (it == spanMap_.end())
+        return;
+
+    Span* span = it->second;
+
+    //合并相邻的span(只考虑了右侧相邻span）
+    void* nextAddr = static_cast<char*>(ptr) + numPages * PAGE_SIZE;
+    auto nextIt = spanMap_.find(nextAddr);
+    if (it != spanMap_.end()) {
+        Span* nextSpan = nextIt->second;
+
+        // 1.检查nextSpan是否在空闲页区间链表中
+        bool found = false;
+        auto& nextList = freeSpans_[nextSpan->numPages]; //
+
+        // 检查是否为头结点
+    }
 }
 
