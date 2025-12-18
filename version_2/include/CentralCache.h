@@ -12,7 +12,7 @@ namespace MemoryPool
 struct SpanTracker {
     std::atomic<void*> spanAddr{nullptr}; // 内存块起始地址
     std::atomic<size_t> numPages{0}; // 内存块所占页数
-    std::atomic<size_t> blockCount{0}; // 内存块切成的小块数量
+    std::atomic<size_t> blockCount{0}; // 内存块切成的小块数量(freeCount_ + 用过的块 = blockCount)
     std::atomic<size_t> freeCount{0}; // 空闲块的数量
 };
 
@@ -52,7 +52,7 @@ private:
     static const std::chrono::milliseconds DELAY_INTERVAL; // 延迟间隔
 
 private:
-    bool shouldPerformDelayedReturn(size_t index,size_t currentCount,std::chrono::steady_clock::time_point currentTime); // 判断指定大小类是否应执行延迟归还
+    bool shouldPerformDelayedReturn(size_t index,size_t currentCount,std::chrono::steady_clock::time_point currentTime); // 判断指定大小内存块是否应执行延迟归还
     void performDelayedReturn(size_t index); // 执行指定大小类的延迟归还操作
 };
 
