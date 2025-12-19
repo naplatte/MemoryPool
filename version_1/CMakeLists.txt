@@ -2,38 +2,37 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Project name
-project(MemoryPool)
+project(MemoryPoolV1)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Include directories
-include_directories(include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Source files
-file(GLOB SRC_FILES "src/*.cpp")
-file(GLOB TEST_FILES "tests/*.cpp")
+# Source files (only version_1)
+set(SOURCES
+    src/MemoryPool.cpp
+)
 
-# Add the executable for the main target
-add_executable(${PROJECT_NAME} ${SRC_FILES} ${TEST_FILES}
-        tests/UnitTest.cpp
-        ../version_2/src/ThreadCache.cpp
-        ../version_2/include/ThreadCache.h
-        ../version_2/include/utils.h
-        ../version_2/src/CentralCache.cpp
-        ../version_2/include/CentralCache.h
-        ../version_2/src/PageCache.cpp
-        ../version_2/include/PageCache.h
-        ../version_2/include/MemoryPool.h
-        ../version_2/tests/UnitTest.cpp
-        ../version_2/tests/PerformanceTest.cpp)
+# Header files (only version_1)
+set(HEADERS
+    include/MemoryPool.h
+)
+
+# Test files (only version_1)
+set(TEST_FILES
+    tests/UnitTest.cpp
+)
+
+# Add the executable for the test target
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${TEST_FILES})
 
 # Add compile options
-target_compile_options(${PROJECT_NAME} PRIVATE -g -pthread)
-
-# Link libraries
-target_link_libraries(${PROJECT_NAME} pthread)
-
-# Link libraries (if any)
-# target_link_libraries(${PROJECT_NAME} <library_name>)
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4)
+else()
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -g)
+    target_link_libraries(${PROJECT_NAME} pthread)
+endif()

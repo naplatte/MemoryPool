@@ -33,18 +33,29 @@ namespace MemoryPool
         if (! start)
             return nullptr;
 
+        // 第一个块返回给调用者
         void* res = start;
-        freeList_[index] = *reinterpret_cast<void**>(start); // 将指针所指的第一块内存分给申请的线程
 
-        // 统计本次申请的内存数量，以及全部放入空闲链表中
-        size_t num = 0;
-        void* cur = start; // 从start开始没问题，返回的res也要放在空闲链表中
-        while (cur != nullptr) {
-            num++;
-            cur = *reinterpret_cast<void**> (cur); // cur就是指向下一个内存块的地址，解引用实际上就是cur遍历下一内存块
+        // 获取剩余的块（如果有的话）
+        void* next = *reinterpret_cast<void**>(start);
+
+        // 如果有剩余的块，统计数量并加入空闲链表
+        if (next != nullptr) {
+            // 将剩余块加入空闲链表
+            freeList_[index] = next;
+
+            // 统计剩余块的数量
+            size_t num = 0;
+            void* cur = next;
+            while (cur != nullptr) {
+                num++;
+                cur = *reinterpret_cast<void**>(cur);
+            }
+            freeListSize_[index] += num;
         }
-        // 更新该大小内存块对应的该线程的空闲链表
-        freeListSize_[index] += num;
+
+        // 清空返回块的next指针，避免调用者误用
+        *reinterpret_cast<void**>(res) = nullptr;
 
         return res;
     }
