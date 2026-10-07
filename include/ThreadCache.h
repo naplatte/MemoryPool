@@ -12,7 +12,9 @@ namespace MemoryPool
 class ThreadCache {
 public:
     static ThreadCache* getInstance() {
-        static thread_local ThreadCache instance; // 每个线程都会有一个ThreadCache对象（副本）
+        // thread_local:c++11的关键字，表示“每个线程都有这个变量的一份独立副本”
+        // 每个线程都会有一个ThreadCache对象（副本）
+        static thread_local ThreadCache instance; 
         return &instance;
     }
 

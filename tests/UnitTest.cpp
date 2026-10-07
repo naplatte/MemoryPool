@@ -1,3 +1,6 @@
+#define NOMINMAX
+#include <Windows.h>
+
 #include "../include/MemoryPool.h"
 #include <iostream>
 #include <vector>
@@ -13,7 +16,7 @@ using namespace MemoryPool;
 // 基础分配测试
 void testBasicAllocation()
 {
-    std::cout << "Running basic allocation test..." << std::endl;
+    std::cout << "正在运行基本分配测试……" << std::endl;
 
     // 测试小内存分配
     void* ptr1 = MemoryPoolV2::allocate(8);
@@ -30,13 +33,13 @@ void testBasicAllocation()
     assert(ptr3 != nullptr);
     MemoryPoolV2::deallocate(ptr3, 1024 * 1024);
 
-    std::cout << "Basic allocation test passed!" << std::endl;
+    std::cout << "基本分配测试通过！" << std::endl;
 }
 
 // 内存写入测试
 void testMemoryWriting()
 {
-    std::cout << "Running memory writing test..." << std::endl;
+    std::cout << "正在运行内存读写测试……" << std::endl;
 
     // 分配并写入数据
     const size_t size = 128;
@@ -56,13 +59,13 @@ void testMemoryWriting()
     }
 
     MemoryPoolV2::deallocate(ptr, size);
-    std::cout << "Memory writing test passed!" << std::endl;
+    std::cout << "内存读写测试通过！" << std::endl;
 }
 
 // 多线程测试
 void testMultiThreading()
 {
-    std::cout << "Running multi-threading test..." << std::endl;
+    std::cout << "正在运行多线程测试……" << std::endl;
 
     const int NUM_THREADS = 4;
     constexpr int ALLOCS_PER_THREAD = 1000;
@@ -82,7 +85,7 @@ void testMultiThreading()
 
                 if (!ptr)
                 {
-                    std::cerr << "Allocation failed for size: " << size << std::endl;
+                    std::cerr << "内存分配失败，申请大小：" << size << std::endl;
                     has_error = true;
                     break;
                 }
@@ -105,7 +108,7 @@ void testMultiThreading()
         }
         catch (const std::exception& e)
         {
-            std::cerr << "Thread exception: " << e.what() << std::endl;
+            std::cerr << "工作线程发生异常：" << e.what() << std::endl;
             has_error = true;
         }
     };
@@ -121,13 +124,13 @@ void testMultiThreading()
         thread.join();
     }
 
-    std::cout << "Multi-threading test passed!" << std::endl;
+    std::cout << "多线程测试通过！" << std::endl;
 }
 
 // 边界测试
 void testEdgeCases()
 {
-    std::cout << "Running edge cases test..." << std::endl;
+    std::cout << "正在运行边界测试……" << std::endl;
 
     // 测试0大小分配
     void* ptr1 = MemoryPoolV2::allocate(0);
@@ -150,13 +153,13 @@ void testEdgeCases()
     assert(ptr4 != nullptr);
     MemoryPoolV2::deallocate(ptr4, MAX_BYTES + 1);
 
-    std::cout << "Edge cases test passed!" << std::endl;
+    std::cout << "边界测试通过！" << std::endl;
 }
 
 // 压力测试
 void testStress()
 {
-    std::cout << "Running stress test..." << std::endl;
+    std::cout << "正在运行压力测试……" << std::endl;
 
     const int NUM_ITERATIONS = 10000;
     std::vector<std::pair<void*, size_t>> allocations;
@@ -179,14 +182,15 @@ void testStress()
         MemoryPoolV2::deallocate(alloc.first, alloc.second);
     }
 
-    std::cout << "Stress test passed!" << std::endl;
+    std::cout << "压力测试通过！" << std::endl;
 }
 
 int main()
 {
+    SetConsoleOutputCP(CP_UTF8);
     try
     {
-        std::cout << "Starting memory pool tests..." << std::endl;
+        std::cout << "开始运行内存池单元测试……" << std::endl;
 
         testBasicAllocation();
         testMemoryWriting();
@@ -194,12 +198,12 @@ int main()
         testEdgeCases();
         testStress();
 
-        std::cout << "All tests passed successfully!" << std::endl;
+        std::cout << "全部单元测试通过！" << std::endl;
         return 0;
     }
     catch (const std::exception& e)
     {
-        std::cerr << "Test failed with exception: " << e.what() << std::endl;
+        std::cerr << "单元测试失败：" << e.what() << std::endl;
         return 1;
     }
 }

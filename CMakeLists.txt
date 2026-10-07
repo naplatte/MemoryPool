@@ -36,10 +36,10 @@ add_test(NAME ${PROJECT_NAME}_PerformanceTest COMMAND ${PROJECT_NAME}_Performanc
 
 # Add compile options
 if(MSVC)
-    target_compile_options(${PROJECT_NAME}_UnitTest PRIVATE /W4 /O2)
+    target_compile_options(${PROJECT_NAME}_UnitTest PRIVATE /W4 /O2 /UNDEBUG)
     target_compile_options(${PROJECT_NAME}_PerformanceTest PRIVATE /W4 /O2)
 else()
-    target_compile_options(${PROJECT_NAME}_UnitTest PRIVATE -Wall -Wextra -O2 -g)
+    target_compile_options(${PROJECT_NAME}_UnitTest PRIVATE -Wall -Wextra -O2 -g -UNDEBUG)
     target_compile_options(${PROJECT_NAME}_PerformanceTest PRIVATE -Wall -Wextra -O2 -g)
     target_link_libraries(${PROJECT_NAME}_UnitTest pthread)
     target_link_libraries(${PROJECT_NAME}_PerformanceTest pthread)
@@ -50,3 +50,18 @@ else()
     endif()
 endif()
 
+
+# Keep CTest logs readable on Windows, including localized timestamps.
+if(WIN32)
+    configure_file(cmake/CTestCustom.cmake CTestCustom.cmake COPYONLY)
+endif()
+set_tests_properties(${PROJECT_NAME}_PerformanceTest PROPERTIES TIMEOUT 240)
+
+# Keep Chinese test messages UTF-8 in both terminal output and log files.
+foreach(test_target ${PROJECT_NAME}_UnitTest ${PROJECT_NAME}_PerformanceTest)
+    if(MSVC)
+        target_compile_options(${test_target} PRIVATE /utf-8)
+    else()
+        target_compile_options(${test_target} PRIVATE -finput-charset=UTF-8 -fexec-charset=UTF-8)
+    endif()
+endforeach()
