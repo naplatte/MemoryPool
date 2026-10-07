@@ -18,3 +18,16 @@ public:
 
 
 #endif //MEMORYPOOL_MEMORYPOOL_H
+
+
+// 使用者
+//   ↓
+// MemoryPoolV2
+//   ↓
+// 当前线程的 ThreadCache
+//   ↓ 本地没有可用内存块
+// CentralCache
+//   ↓
+// PageCache
+//   ↓
+// 操作系统

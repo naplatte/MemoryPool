@@ -182,24 +182,24 @@ void testStress()
     std::cout << "Stress test passed!" << std::endl;
 }
 
-//int main()
-//{
-//    try
-//    {
-//        std::cout << "Starting memory pool tests..." << std::endl;
-//
-//        testBasicAllocation();
-//        testMemoryWriting();
-//        testMultiThreading();
-//        testEdgeCases();
-//        testStress();
-//
-//        std::cout << "All tests passed successfully!" << std::endl;
-//        return 0;
-//    }
-//    catch (const std::exception& e)
-//    {
-//        std::cerr << "Test failed with exception: " << e.what() << std::endl;
-//        return 1;
-//    }
-//}
+int main()
+{
+    try
+    {
+        std::cout << "Starting memory pool tests..." << std::endl;
+
+        testBasicAllocation();
+        testMemoryWriting();
+        testMultiThreading();
+        testEdgeCases();
+        testStress();
+
+        std::cout << "All tests passed successfully!" << std::endl;
+        return 0;
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Test failed with exception: " << e.what() << std::endl;
+        return 1;
+    }
+}

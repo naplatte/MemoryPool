@@ -1,6 +1,8 @@
 #include "../include/PageCache.h"
 #include <Windows.h>
 
+namespace MemoryPool
+{
 void *PageCache::allocateSpan(size_t numPages) {
     // RAII 现在加锁，等mutex_作用域结束后，自动解锁该信号量
     // 即进入函数时，上锁mutex_，退出函数时解锁，保证多线程操作freeSpans_和spanMap_的安全性
@@ -86,6 +88,44 @@ void PageCache::deallocateSpan(void *ptr, size_t numPages) {
         auto& nextList = freeSpans_[nextSpan->numPages]; //
 
         // 检查是否为头结点
+        if (nextList == nextSpan)
+        {
+            nextList = nextSpan->next;
+            found = true;
+        }
+        else if (nextList) // 只有在链表非空时才遍历
+        {
+            Span* prev = nextList;
+            while (prev->next)
+            {
+                if (prev->next == nextSpan)
+                {
+                    // 将nextSpan从空闲链表中移除
+                    prev->next = nextSpan->next;
+                    found = true;
+                    break;
+                }
+                prev = prev->next;
+            }
+        }
+
+        // 2. 只有在找到nextSpan的情况下才进行合并
+        if (found)
+        {
+            // 合并span
+            span->numPages += nextSpan->numPages;
+            spanMap_.erase(nextAddr);
+            delete nextSpan;
+        }
     }
+
+    // 将合并后的span通过头插法插入空闲列表
+    auto& list = freeSpans_[span->numPages];
+    span->next = list;
+    list = span;
 }
+
+}
+
+
 

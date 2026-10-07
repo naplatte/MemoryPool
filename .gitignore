@@ -39,3 +39,14 @@
 
 # debug information files
 *.dwo
+
+# CMake build directories
+/build*/
+**/cmake-build-*/
+
+# Local agent learnings
+.learnings/
+
+# Editor settings
+.idea/
+.vscode/

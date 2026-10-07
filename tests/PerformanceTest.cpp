@@ -13,14 +13,16 @@ using namespace std::chrono;
 // 计时器类
 class Timer
 {
-    high_resolution_clock::time_point start;
+    steady_clock::time_point start;
 public:
-    Timer() : start(high_resolution_clock::now()) {}
+    // 记录起点
+    Timer() : start(steady_clock::now()) {}
 
+    // 计算已经过去多久
     double elapsed()
     {
-        auto end = high_resolution_clock::now();
-        return duration_cast<microseconds>(end - start).count() / 1000.0; // 转换为毫秒
+        auto end = steady_clock::now();
+        return duration_cast<microseconds>(end - start).count() / 1000.0; // 强制把 duration 转成 微秒
     }
 };
 
@@ -28,17 +30,18 @@ public:
 class PerformanceTest
 {
 private:
-    // 测试统计信息
+    // 统计测试结果
     struct TestStats
     {
-        double memPoolTime{0.0};
-        double systemTime{0.0};
-        size_t totalAllocs{0};
-        size_t totalBytes{0};
+        double memPoolTime{0.0}; // MemoryPool耗时
+        double systemTime{0.0}; // 系统调用耗时
+        size_t totalAllocs{0}; // 总分配次数
+        size_t totalBytes{0}; // 总分配字节数
     };
 
 public:
-    // 1. 系统预热
+    // 1. 系统预热:让内存池和系统内存处于“稳定工作状态”，
+    //避免把“第一次使用的额外开销”算进性能测试结果。
     static void warmup()
     {
         std::cout << "Warming up memory systems...\n";
@@ -63,7 +66,7 @@ public:
         std::cout << "Warmup complete.\n\n";
     }
 
-    // 2. 小对象分配测试
+    // 2. 小对象分配测试(小对象 多尺寸 高频分配 分配与释放交错) 单线程
     static void testSmallAllocation()
     {
         constexpr size_t NUM_ALLOCS = 50000;
@@ -309,7 +312,7 @@ public:
         }
     }
 
-    // 4. 混合大小测试
+    // 4. 混合大小测试 & 批量释放
     static void testMixedSizes()
     {
         constexpr size_t NUM_ALLOCS = 100000;

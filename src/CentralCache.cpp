@@ -51,7 +51,7 @@ void *CentralCache::fetchRange(size_t index) {
 
             if (blockNum > 1) {
                 // 两个块才能构建空闲链表
-                for (auto i = 1; i < blockNum; ++i) {
+                for (size_t i = 1; i < blockNum; ++i) {
                     void* cur = start + (i - 1) * size;
                     void* next = start + i * size;
                     *reinterpret_cast<void**>(cur) = next;
